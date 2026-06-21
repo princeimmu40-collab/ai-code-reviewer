@@ -1,4 +1,4 @@
-name: Run .NET AI Bot Reviewer
+name: Run Python AI Bot Reviewer
 
 on:
   pull_request:
@@ -11,17 +11,19 @@ jobs:
       - name: Check out repo code
         uses: actions/checkout@v4
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          dotnet-version: '8.0'
+          python-python: '3.10'
 
-      - name: Restore and Build
-        run: dotnet build --configuration Release
+      - name: Install Dependencies
+        run: |
+          pip install google-generativeai requests
 
       - name: Execute Bot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: dotnet run --configuration Release --project AiReviewBot.csproj
+          REPO_NAME: ${{ github.repository }}
+        run: python ai_review.py
