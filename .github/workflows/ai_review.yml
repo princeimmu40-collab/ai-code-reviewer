@@ -14,7 +14,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-python: '3.10'
+          python-version: '3.12' # Matching the 3.12 version from your initial error traceback
 
       - name: Install Dependencies
         run: |
@@ -22,8 +22,8 @@ jobs:
 
       - name: Execute Bot
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO_NAME: ${{ github.repository }}
         run: python ai_review.py
