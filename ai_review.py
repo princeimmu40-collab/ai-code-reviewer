@@ -8,7 +8,7 @@ github_token = os.getenv("GITHUB_TOKEN")
 pr_number = os.getenv("PR_NUMBER")
 repo_name = os.getenv("REPO_NAME")
 
-if not gemini_key or not github_token or not pr_number:
+if not gemini_key or not github_token or not pr_number or not repo_name:
     print("Missing required environment variables.")
     exit(1)
 
@@ -17,7 +17,8 @@ genai.configure(api_key=gemini_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 # 1. GitHub PR నుండి మారిన కోడ్ (Diff) ని తీసుకురావడం
-github_url = f"[https://api.github.com/repos/](https://api.github.com/repos/){repo_name}/pulls/{pr_number}"
+# ఇక్కడ కూడా హార్డ్ కోడ్ చేయకుండా డైనమిక్ గా మార్చాము
+github_url = f"https://api.github.com/repos/{repo_name}/pulls/{pr_number}"
 headers = {
     "Authorization": f"token {github_token}",
     "Accept": "application/vnd.github.v3.diff"
@@ -36,7 +37,8 @@ ai_response = model.generate_content(prompt)
 review_comment = ai_response.text
 
 # 3. రివ్యూ కామెంట్‌ను GitHub PR పై పోస్ట్ చేయడం
-comment_url = f"[https://api.github.com/repos/](https://api.github.com/repos/){repo_name}/issues/{pr_number}/comments"
+# ఇక్కడ తప్పుగా ఉన్న బ్రాకెట్లను తీసేసి క్లీన్ URL గా మార్చాము
+comment_url = f"https://api.github.com/repos/{repo_name}/issues/{pr_number}/comments"
 comment_headers = {
     "Authorization": f"token {github_token}",
     "Accept": "application/vnd.github.v3+json"
