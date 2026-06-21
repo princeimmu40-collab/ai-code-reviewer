@@ -1,8 +1,8 @@
 import os
 import requests
-import google.generativeai as genai
+from google import genai
 
-# Environment Variables లోడ్ చేయడం
+# Load Environment Variables
 gemini_key = os.getenv("GEMINI_API_KEY")
 github_token = os.getenv("GITHUB_TOKEN")
 pr_number = os.getenv("PR_NUMBER")
@@ -12,12 +12,10 @@ if not gemini_key or not github_token or not pr_number or not repo_name:
     print("Missing required environment variables.")
     exit(1)
 
-# Gemini AI కాన్ఫిగరేషన్
-genai.configure(api_key=gemini_key)
-model = genai.GenerativeModel("gemini-1.5-flash")
+# Initialize the modern Gemini Client
+client = genai.Client(api_key=gemini_key)
 
-# 1. GitHub PR నుండి మారిన కోడ్ (Diff) ని తీసుకురావడం
-# ఇక్కడ కూడా హార్డ్ కోడ్ చేయకుండా డైనమిక్ గా మార్చాము
+# 1. Fetch the code changes (Diff) from the GitHub PR
 github_url = f"https://api.github.com/repos/{repo_name}/pulls/{pr_number}"
 headers = {
     "Authorization": f"token {github_token}",
@@ -31,13 +29,16 @@ if response.status_code != 200:
 
 pr_diff = response.text
 
-# 2. Gemini AI ని కోడ్ రివ్యూ అడగడం
+# 2. Ask Gemini AI to review the code using the updated model identifier
 prompt = f"You are an expert code reviewer. Review the following GitHub Pull Request diff and provide feedback on bugs, security flaws, and performance improvements. Keep your response clean and professional:\n\n{pr_diff}"
-ai_response = model.generate_content(prompt)
+
+ai_response = client.models.generate_content(
+    model='gemini-2.5-flash',
+    contents=prompt,
+)
 review_comment = ai_response.text
 
-# 3. రివ్యూ కామెంట్‌ను GitHub PR పై పోస్ట్ చేయడం
-# ఇక్కడ తప్పుగా ఉన్న బ్రాకెట్లను తీసేసి క్లీన్ URL గా మార్చాము
+# 3. Post the review comment back to the GitHub PR
 comment_url = f"https://api.github.com/repos/{repo_name}/issues/{pr_number}/comments"
 comment_headers = {
     "Authorization": f"token {github_token}",
